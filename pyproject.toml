@@ -1,0 +1,13 @@
+[project]
+name = "sora-video-cli"
+version = "0.1.0"
+description = "Sora 2 CLI - Generate videos with OpenAI Sora 2 and Sora 2 Pro API from command line"
+requires-python = ">=3.11"
+dependencies = [
+    "click>=8.3.0",
+    "openai>=2.2.0",
+    "python-dotenv>=1.1.1",
+]
+
+[project.scripts]
+sora-cli = "sora_cli.cli:cli"
