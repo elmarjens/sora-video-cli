@@ -1,5 +1,6 @@
 """Enhance user prompts using GPT-5 based on Sora 2 prompting guidelines."""
 
+import json
 from openai import OpenAI
 
 
@@ -67,6 +68,12 @@ def enhance_prompt(user_prompt: str, client: OpenAI) -> str:
                 {"role": "user", "content": f"Enhance this video prompt for Sora 2:\n\n{user_prompt}"}
             ],
         )
+
+        print("\n" + "="*80)
+        print("OPENAI API RESPONSE (chat.completions.create):")
+        print("="*80)
+        print(json.dumps(response.model_dump(), indent=2, default=str))
+        print("="*80 + "\n")
 
         enhanced = response.choices[0].message.content.strip()
         return enhanced

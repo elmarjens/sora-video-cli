@@ -1,5 +1,6 @@
 """Video creation logic with polling and progress display."""
 
+import json
 import sys
 import time
 from pathlib import Path
@@ -48,6 +49,12 @@ def create_video(
         "seconds": str(seconds),
     }
 
+    # Start video generation
+    click.echo(click.style(f"🎬 Starting video generation with {model}...", fg="cyan"))
+    click.echo(f"   Duration: {seconds}s")
+    if image_path:
+        click.echo(f"   Reference image: {image_path}")
+
     # Add image reference if provided
     if image_path:
         image_file = Path(image_path)
@@ -71,14 +78,16 @@ def create_video(
 
         with open(image_file, "rb") as f:
             params["input_reference"] = (image_file.name, f, content_type)
+            video = client.videos.create(**params)
+    else:
+        video = client.videos.create(**params)
 
-    # Start video generation
-    click.echo(click.style(f"🎬 Starting video generation with {model}...", fg="cyan"))
-    click.echo(f"   Duration: {seconds}s")
-    if image_path:
-        click.echo(f"   Reference image: {image_path}")
+    print("\n" + "="*80)
+    print("OPENAI API RESPONSE (videos.create):")
+    print("="*80)
+    print(json.dumps(video.model_dump(), indent=2, default=str))
+    print("="*80 + "\n")
 
-    video = client.videos.create(**params)
     click.echo(click.style(f"\n✓ Video generation started", fg="green"))
     click.echo(f"  Video ID: {video.id}\n")
 
@@ -89,6 +98,13 @@ def create_video(
     while video.status in ("in_progress", "queued"):
         # Refresh status
         video = client.videos.retrieve(video.id)
+
+        print("\n" + "="*80)
+        print("OPENAI API RESPONSE (videos.retrieve):")
+        print("="*80)
+        print(json.dumps(video.model_dump(), indent=2, default=str))
+        print("="*80 + "\n")
+
         progress = getattr(video, "progress", 0)
 
         filled_length = int((progress / 100) * bar_length)

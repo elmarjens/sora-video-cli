@@ -1,5 +1,6 @@
 """Video remix/edit logic with polling and progress display."""
 
+import json
 import sys
 import time
 from pathlib import Path
@@ -33,6 +34,13 @@ def edit_video(
             video_id=video_id,
             prompt=prompt,
         )
+
+        print("\n" + "="*80)
+        print("OPENAI API RESPONSE (videos.remix):")
+        print("="*80)
+        print(json.dumps(video.model_dump(), indent=2, default=str))
+        print("="*80 + "\n")
+
     except Exception as e:
         click.echo(click.style(f"❌ Error starting remix: {e}", fg="red"))
         sys.exit(1)
@@ -47,6 +55,13 @@ def edit_video(
     while video.status in ("in_progress", "queued"):
         # Refresh status
         video = client.videos.retrieve(video.id)
+
+        print("\n" + "="*80)
+        print("OPENAI API RESPONSE (videos.retrieve):")
+        print("="*80)
+        print(json.dumps(video.model_dump(), indent=2, default=str))
+        print("="*80 + "\n")
+
         progress = getattr(video, "progress", 0)
 
         filled_length = int((progress / 100) * bar_length)

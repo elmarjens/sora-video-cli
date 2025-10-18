@@ -55,8 +55,13 @@ def cli():
 @click.option(
     "--prompt",
     "-p",
-    required=True,
     help="Video generation prompt",
+)
+@click.option(
+    "--prompt-file",
+    "-f",
+    type=click.Path(exists=True),
+    help="Path to file containing the prompt",
 )
 @click.option(
     "--seconds",
@@ -82,7 +87,7 @@ def cli():
     is_flag=True,
     help="Skip prompt enhancement with GPT-5",
 )
-def create(model: str, prompt: str, seconds: int, image: str, output_id: str, no_enhance: bool):
+def create(model: str, prompt: str, seconds: int, image: str, output_id: str, no_enhance: bool, prompt_file: str):
     """
     Create a new video with Sora 2.
 
@@ -96,7 +101,28 @@ def create(model: str, prompt: str, seconds: int, image: str, output_id: str, no
 
       # Create with reference image
       sora-cli create -p "She smiles and walks away" -i frame.jpg -o walking
+
+      # Create with prompt from file
+      sora-cli create -f prompt.txt -o video_from_file
     """
+    # Validate prompt options
+    if not prompt and not prompt_file:
+        click.echo(click.style("❌ Error: Either --prompt or --prompt-file must be provided", fg="red"))
+        sys.exit(1)
+
+    if prompt and prompt_file:
+        click.echo(click.style("❌ Error: Cannot use both --prompt and --prompt-file", fg="red"))
+        sys.exit(1)
+
+    # Read prompt from file if provided
+    if prompt_file:
+        try:
+            with open(prompt_file, 'r', encoding='utf-8') as f:
+                prompt = f.read().strip()
+        except Exception as e:
+            click.echo(click.style(f"❌ Error reading prompt file: {e}", fg="red"))
+            sys.exit(1)
+
     client = get_openai_client()
 
     create_video(
@@ -120,8 +146,13 @@ def create(model: str, prompt: str, seconds: int, image: str, output_id: str, no
 @click.option(
     "--prompt",
     "-p",
-    required=True,
     help="Remix instructions",
+)
+@click.option(
+    "--prompt-file",
+    "-f",
+    type=click.Path(exists=True),
+    help="Path to file containing the prompt",
 )
 @click.option(
     "--output-id",
@@ -129,7 +160,7 @@ def create(model: str, prompt: str, seconds: int, image: str, output_id: str, no
     required=True,
     help="Output video identifier (filename without extension)",
 )
-def edit(video_id: str, prompt: str, output_id: str):
+def edit(video_id: str, prompt: str, output_id: str, prompt_file: str):
     """
     Remix/edit an existing video.
 
@@ -143,7 +174,28 @@ def edit(video_id: str, prompt: str, output_id: str):
 
       # Modify subject
       sora-cli edit -v video_abc123 -p "Change monster to orange" -o orange_monster
+
+      # Edit with prompt from file
+      sora-cli edit -v video_abc123 -f instructions.txt -o edited_version
     """
+    # Validate prompt options
+    if not prompt and not prompt_file:
+        click.echo(click.style("❌ Error: Either --prompt or --prompt-file must be provided", fg="red"))
+        sys.exit(1)
+
+    if prompt and prompt_file:
+        click.echo(click.style("❌ Error: Cannot use both --prompt and --prompt-file", fg="red"))
+        sys.exit(1)
+
+    # Read prompt from file if provided
+    if prompt_file:
+        try:
+            with open(prompt_file, 'r', encoding='utf-8') as f:
+                prompt = f.read().strip()
+        except Exception as e:
+            click.echo(click.style(f"❌ Error reading prompt file: {e}", fg="red"))
+            sys.exit(1)
+
     client = get_openai_client()
 
     edit_video(
